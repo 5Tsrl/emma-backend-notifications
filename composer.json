@@ -1,0 +1,47 @@
+{
+    "name": "impronta48/cakephp-notifications",
+    "description": "CakePHP simple system for sending notifications from your application",
+    "type": "cakephp-plugin",
+    "license": "MIT",
+    "keywords": [
+        "php",
+        "notifications",
+        "cakephp"
+    ],
+    "homepage": "https://github.com/impronta48",
+    "authors": [{
+        "name": "Massimo INFUNTI",
+        "role": "Author",
+        "homepage": "https://github.com/impronta48"
+    }],
+    "require": {
+        "php": ">=7.1",
+        "cakephp/cakephp": "^4.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.0",
+        "cakephp/cakephp-codesniffer": "^3.0",
+        "phpstan/phpstan": "^0.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "Notifications\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Notifications\\Test\\": "tests/"
+        }
+    },
+    "scripts": {
+        "check": [
+            "@test",
+            "@phpstan",
+            "@cs-check"
+        ],
+        "test": "phpunit --colors=always",
+        "phpstan": "phpstan analyse --no-progress -c phpstan.neon -l 4 src",
+        "cs-check": "phpcs --colors -p --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests",
+        "cs-fix": "phpcbf --colors --standard=vendor/cakephp/cakephp-codesniffer/CakePHP ./src ./tests"
+    }
+}
