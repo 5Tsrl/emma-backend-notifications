@@ -23,7 +23,10 @@ class baseNotification
   {
     $className = (new \ReflectionClass($this))->getShortName();
     $theme = Configure::read('theme');
-    $this->template = $theme . '.' . strstr($className, 'Notification', true);
+    if (!empty($theme)) {
+      $theme .= '.';
+    };
+    $this->template = $theme . strstr($className, 'Notification', true);
     $this->subject = 'Notifica';
     $this->from = Configure::read('MailAdmin');
     $this->to = Configure::read('MailAdmin');
