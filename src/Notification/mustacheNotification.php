@@ -70,13 +70,16 @@ class mustacheNotification extends baseNotification
     ];
 
     if (Configure::read('MailLogo')) {
-      $logoAttachment = [
-        'logo.png' => [
-          'file' => WWW_ROOT .  Asset::imageUrl(Configure::read('MailLogo')),
-          'mimetype' => 'image/png',
-          'contentId' => '12345'
-        ]
-      ];
+      $file = WWW_ROOT . Configure::read('MailLogo');
+      if (file_exists($file)) {
+        $logoAttachment = [
+          'logo.png' => [
+            'file' => $file,
+            'mimetype' => 'image/png',
+            'contentId' => '12345'
+          ]
+        ];
+      }
       $options['attachments'] = $logoAttachment;
     }
 

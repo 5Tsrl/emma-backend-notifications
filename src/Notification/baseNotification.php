@@ -50,13 +50,16 @@ class baseNotification
     }
 
     if (Configure::read('MailLogo')) {
-      $mailer->setAttachments([
-        'logo.png' => [
-          'file' => WWW_ROOT . Configure::read('MailLogo'),
-          'mimetype' => 'image/png',
-          'contentId' => '12345'
-        ]
-      ]);
+      $file = WWW_ROOT . Configure::read('MailLogo');
+      if (file_exists($file)) {
+        $mailer->setAttachments([
+          'logo.png' => [
+            'file' => $file,
+            'mimetype' => 'image/png',
+            'contentId' => '12345'
+          ]
+        ]);
+      }
     }
 
     $mailer->deliver();
