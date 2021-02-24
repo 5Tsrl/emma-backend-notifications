@@ -52,7 +52,7 @@ class baseNotification
     if (Configure::read('MailLogo')) {
       $mailer->setAttachments([
         'logo.png' => [
-          'file' => WWW_ROOT .  Asset::imageUrl(Configure::read('MailLogo')),
+          'file' => WWW_ROOT . Configure::read('MailLogo'),
           'mimetype' => 'image/png',
           'contentId' => '12345'
         ]
