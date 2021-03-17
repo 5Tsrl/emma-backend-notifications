@@ -33,6 +33,16 @@ class baseNotification
     $this->cc = Configure::read('MailAdmin');
   }
 
+  public function setFrom($email, $name = null)
+  {
+    if (!empty($name)) {
+      $this->from = [$email = $name];
+    } else {
+      $this->from = $email;
+    }
+  }
+
+
   public function toMail()
   {
     $mailer = new Mailer('default');
