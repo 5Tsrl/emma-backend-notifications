@@ -38,6 +38,19 @@ class mustacheNotification extends baseNotification
       throw new \Exception("L'email {$this->to} è vuota o non valida");
     }
 
+    if (Configure::read('MailLogo')) {
+      $file = WWW_ROOT . Configure::read('MailLogo');
+      if (file_exists($file)) {
+        $mailer->setAttachments([
+          'logo.png' => [
+            'file' => $file,
+            'mimetype' => 'image/png',
+            'contentId' => '12345'
+          ]
+        ]);
+      }
+    }
+
     $mailer->setFrom($this->from)
       ->setTo($this->to)
       ->setBcc($this->from)
