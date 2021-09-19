@@ -69,7 +69,7 @@ class mustacheNotification extends baseNotification
     $rendered_message = $m->render($this->mustacheTemplate, $this->mustacheVars);
 
     $data = ['content' => $rendered_message];
-    $k = array_key_first($this->from);
+  
     $options = [
       'subject' => $this->subject,
       'layout' => 'default',
@@ -77,10 +77,16 @@ class mustacheNotification extends baseNotification
       'config' => 'default',
       'send_at' => new FrozenTime('now'),
       'format' => 'html',
-      'from_name' => $this->from[$k],
-      'from_email' => $k,
+
       'campaign_id' => $this->mustacheVars['id'],
     ];
+
+    if (is_array($this->from)){
+      $options['from_name'] = array_key_first($this->from); 
+      $options['from_email'] = array_pop($this->from); 
+    } else {
+      $options['from_email'] = $this->from; 
+    }
 
     if (Configure::read('MailLogo')) {
       $file = WWW_ROOT . Configure::read('MailLogo');
