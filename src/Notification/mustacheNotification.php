@@ -86,6 +86,7 @@ class mustacheNotification extends baseNotification
       $options['from_email'] = array_pop($this->from); 
     } else {
       $options['from_email'] = $this->from; 
+      $options['from_name'] = $this->from; 
     }
 
     if (Configure::read('MailLogo')) {
