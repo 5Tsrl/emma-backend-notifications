@@ -31,7 +31,8 @@ class mustacheNotification extends baseNotification
     if (!empty($mailer)) {
       $this->mailer = $mailer;
     }
-    $mailer = new Mailer($this->mailer);
+    $mailer = new Mailer();
+    $mailer->setProfile(['transport' => $this->mailer]);
 
     $m = new \Mustache_Engine(['entity_flags' => ENT_QUOTES]);
     $rendered_message = $m->render($this->mustacheTemplate, $this->mustacheVars);
@@ -68,8 +69,13 @@ class mustacheNotification extends baseNotification
     return $mailer->deliver();
   }
 
-  public function toEmailQueue()
+  public function toEmailQueue($mailer = null)
   {
+    //Gestisco la configurazione email
+    if (!empty($mailer)) {
+      $this->mailer = $mailer;
+    }
+
     $m = new \Mustache_Engine(['entity_flags' => ENT_QUOTES]);
     $rendered_message = $m->render($this->mustacheTemplate, $this->mustacheVars);
 
@@ -79,7 +85,7 @@ class mustacheNotification extends baseNotification
       'subject' => $this->subject,
       'layout' => 'default',
       'template' => 'mustache',
-      'config' => 'default',
+      'config' => $this->mailer,
       'send_at' => new FrozenTime('now'),
       'format' => 'html',
       'campaign_id' => $this->mustacheVars['id'],
