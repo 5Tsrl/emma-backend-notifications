@@ -17,6 +17,7 @@ class baseNotification
   protected $from;
   protected $to;
   protected $cc;
+  protected $mailer;
   protected $vars = [];
 
   public function __construct()
@@ -31,6 +32,7 @@ class baseNotification
     $this->from = Configure::read('MailAdmin');
     $this->to = Configure::read('MailAdmin');
     $this->cc = Configure::read('MailAdmin');
+    $this->mailer = 'default';
   }
 
   public function setFrom($email, $name = null)
@@ -43,9 +45,14 @@ class baseNotification
   }
 
 
-  public function toMail()
+  public function toMail($mailer  = null)
   {
-    $mailer = new Mailer('default');
+    //Gestisco la configurazione email
+    if (!empty($mailer)){
+      $this->mailer = $mailer;
+    }
+
+    $mailer = new Mailer($this->mailer);
 
     $mailer->setFrom($this->from)
       ->setTo($this->to)

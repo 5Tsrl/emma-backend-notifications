@@ -15,18 +15,23 @@ class mustacheNotification extends baseNotification
   protected $mustacheTemplate;
   protected $mustacheVars;
 
-  public function __construct($toUser, $subject, $mustacheTemplate, $mustacheVars)
+  public function __construct($toUser, $subject, $mustacheTemplate, $mustacheVars, $mailer = 'default')
   {
     parent::__construct();
     $this->mustacheTemplate = $mustacheTemplate;
     $this->mustacheVars = $mustacheVars;
     $this->to = $toUser->email;
     $this->subject = $subject;
+    $this->mailer = $mailer;
   }
 
-  public function toMail()
+  public function toMail($mailer = null)
   {
-    $mailer = new Mailer('default');
+    //Gestisco la configurazione email
+    if (!empty($mailer)) {
+      $this->mailer = $mailer;
+    }
+    $mailer = new Mailer($this->mailer);
 
     $m = new \Mustache_Engine(['entity_flags' => ENT_QUOTES]);
     $rendered_message = $m->render($this->mustacheTemplate, $this->mustacheVars);
@@ -77,7 +82,6 @@ class mustacheNotification extends baseNotification
       'config' => 'default',
       'send_at' => new FrozenTime('now'),
       'format' => 'html',
-
       'campaign_id' => $this->mustacheVars['id'],
     ];
 
