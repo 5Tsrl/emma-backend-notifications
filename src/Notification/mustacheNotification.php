@@ -10,6 +10,7 @@ use Cake\Log\Log;
 use Cake\Mailer\Mailer;
 use Cake\Routing\Asset;
 use EmailQueue\EmailQueue;
+use Exception;
 
 class mustacheNotification extends baseNotification
 {
@@ -120,7 +121,12 @@ class mustacheNotification extends baseNotification
       $options['attachments'] = $logoAttachment;
     }
     Log::write('debug', "inserito il logo");
-    EmailQueue::enqueue($this->to, $data, $options);
+    try {
+      EmailQueue::enqueue($this->to, $data, $options);
+    } catch (Exception $e) {
+      $err = $e->getMessage();
+      Log::write('debug', "errore nell'emissione di  {$err}");
+    }
     Log::write('debug', "accodata la mail {$this->to}");
   }
 }
