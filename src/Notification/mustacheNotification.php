@@ -6,6 +6,7 @@ namespace Notifications\Notification;
 
 use Cake\Core\Configure;
 use Cake\I18n\FrozenTime;
+use Cake\Log\Log;
 use Cake\Mailer\Mailer;
 use Cake\Routing\Asset;
 use EmailQueue\EmailQueue;
@@ -75,7 +76,8 @@ class mustacheNotification extends baseNotification
     if (!empty($mailer)) {
       $this->mailer = $mailer;
     }
-
+    Log::write('debug', "definito il mailer $mailer");
+    
     $m = new \Mustache_Engine(['entity_flags' => ENT_QUOTES]);
     $rendered_message = $m->render($this->mustacheTemplate, $this->mustacheVars);
 
@@ -91,6 +93,8 @@ class mustacheNotification extends baseNotification
       'campaign_id' => $this->mustacheVars['id'],
     ];
 
+    Log::write('debug', "preparate le options");
+    
     if (is_array($this->from)){
       $options['from_name'] = array_key_first($this->from); 
       $options['from_email'] = array_pop($this->from); 
@@ -98,6 +102,9 @@ class mustacheNotification extends baseNotification
       $options['from_email'] = $this->from; 
       $options['from_name'] = $this->from; 
     }
+
+    Log::write('debug', "from name: ". $options['from_name']);
+    Log::write('debug', "from email: " .  $options['from_email']);
 
     if (Configure::read('MailLogo')) {
       $file = WWW_ROOT . Configure::read('MailLogo');
@@ -112,7 +119,8 @@ class mustacheNotification extends baseNotification
       }
       $options['attachments'] = $logoAttachment;
     }
-
+    Log::write('debug', "inserito il logo");
     EmailQueue::enqueue($this->to, $data, $options);
+    Log::write('debug', "accodata la mail {$this->to}");
   }
 }
