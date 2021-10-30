@@ -31,7 +31,7 @@ class baseNotification
     $this->subject = 'Notifica';
     $this->from = Configure::read('MailAdmin');
     $this->to = Configure::read('MailAdmin');
-    $this->cc = Configure::read('MailAdmin');
+    //$this->cc = Configure::read('MailAdmin');
     $this->mailer = 'default';
   }
 
