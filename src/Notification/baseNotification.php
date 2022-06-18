@@ -18,9 +18,10 @@ class baseNotification
   protected $to;
   protected $cc;
   protected $mailer;
+  protected $logo;
   protected $vars = [];
 
-  public function __construct()
+  public function __construct($logo = null)
   {
     $className = (new \ReflectionClass($this))->getShortName();
     $theme = Configure::read('theme');
@@ -33,6 +34,7 @@ class baseNotification
     $this->to = Configure::read('MailAdmin');
     //$this->cc = Configure::read('MailAdmin');
     $this->mailer = 'default';
+    $this->logo = $logo;
   }
 
   public function setFrom($email, $name = null)
@@ -65,10 +67,13 @@ class baseNotification
     if (!empty($this->cc)) {
       $mailer->setCC($this->cc);
     }
-
-    if (Configure::read('MailLogo')) {
+    if (!empty($this->logo)) {
+      $file = WWW_ROOT . $this->logo;
+    } elseif (Configure::read('MailLogo')) {
       $file = WWW_ROOT . Configure::read('MailLogo');
-      if (file_exists($file)) {
+    }
+
+    if (file_exists($file)) {
         $mailer->setAttachments([
           'logo.png' => [
             'file' => $file,
@@ -76,7 +81,6 @@ class baseNotification
             'contentId' => '12345'
           ]
         ]);
-      }
     }
 
     $mailer->deliver();

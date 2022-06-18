@@ -17,7 +17,7 @@ class mustacheNotification extends baseNotification
   protected $mustacheTemplate;
   protected $mustacheVars;
 
-  public function __construct($toUser, $subject, $mustacheTemplate, $mustacheVars, $mailer = 'default')
+  public function __construct($toUser, $subject, $mustacheTemplate, $mustacheVars, $mailer = 'default', $logo = null)
   {
     parent::__construct();
     $this->mustacheTemplate = $mustacheTemplate;
@@ -25,6 +25,7 @@ class mustacheNotification extends baseNotification
     $this->to = $toUser->email;
     $this->subject = $subject;
     $this->mailer = $mailer;
+    $this->logo = $logo;
   }
 
   public function toMail($mailer = null)
@@ -46,9 +47,13 @@ class mustacheNotification extends baseNotification
       throw new \Exception("L'email {$this->to} è vuota o non valida");
     }
 
-    if (Configure::read('MailLogo')) {
+    if (!empty($this->logo)){
+      $file = WWW_ROOT . $this->logo;
+    } elseif (Configure::read('MailLogo')) {
       $file = WWW_ROOT . Configure::read('MailLogo');
-      if (file_exists($file)) {
+    }
+
+    if (file_exists($file)) {
         $mailer->setAttachments([
           'logo.png' => [
             'file' => $file,
@@ -56,9 +61,8 @@ class mustacheNotification extends baseNotification
             'contentId' => '12345'
           ]
         ]);
-      }
     }
-
+    
     $mailer->setFrom($this->from)
       ->setTo($this->to)
       ->setBcc($this->from)
@@ -67,7 +71,7 @@ class mustacheNotification extends baseNotification
       ->viewBuilder()
       ->setTemplate('default')
       ->setVars(['content' => $rendered_message]);
-
+    
     return $mailer->deliver();
   }
 
@@ -107,9 +111,13 @@ class mustacheNotification extends baseNotification
     Log::write('debug', "from name: ". $options['from_name']);
     Log::write('debug', "from email: " .  $options['from_email']);
 
-    if (Configure::read('MailLogo')) {
+    if (!empty($this->logo)) {
+      $file = WWW_ROOT . $this->logo;
+    } elseif (Configure::read('MailLogo')) {
       $file = WWW_ROOT . Configure::read('MailLogo');
-      if (file_exists($file)) {
+    }
+
+    if (file_exists($file)) {
         $logoAttachment = [
           'logo.png' => [
             'file' => $file,
@@ -117,9 +125,9 @@ class mustacheNotification extends baseNotification
             'contentId' => '12345'
           ]
         ];
-      }
       $options['attachments'] = $logoAttachment;
     }
+    
     Log::write('debug', "inserito il logo");
     try {
       EmailQueue::enqueue($this->to, $data, $options);
