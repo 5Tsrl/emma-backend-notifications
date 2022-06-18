@@ -86,7 +86,7 @@ class mustacheNotification extends baseNotification
     $m = new \Mustache_Engine(['entity_flags' => ENT_QUOTES]);
     $rendered_message = $m->render($this->mustacheTemplate, $this->mustacheVars);
 
-    $data = ['content' => $rendered_message];
+    $data = ['content' => $rendered_message, 'id' => $this->mustacheVars['id'] ];
   
     $options = [
       'subject' => $this->subject,
