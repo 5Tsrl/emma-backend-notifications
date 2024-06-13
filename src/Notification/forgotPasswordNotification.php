@@ -18,7 +18,7 @@ class forgotPasswordNotification extends baseNotification
     $p = parse_url($referer, PHP_URL_PORT);
     $referer = "$s://$h:$p";
     $this->vars =  ['user' => $toUser, 'token' => $token, 'referer' => $referer];
-    $this->subject = 'Password Reset';
+    $this->subject = 'Password Reset / Attivazione Account';
     $this->to = $toUser->email;
   }
 }
