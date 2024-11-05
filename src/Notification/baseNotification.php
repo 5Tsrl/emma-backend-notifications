@@ -7,6 +7,7 @@ namespace Notifications\Notification;
 use Cake\Core\Configure;
 use Cake\Mailer\Mailer;
 use Cake\Routing\Asset;
+use Cake\Utility\Inflector;
 use Composer\Config;
 use Notifications\Model\Table\NotificationsTable;
 
@@ -28,7 +29,9 @@ class baseNotification
     if (!empty($theme)) {
       $theme .= '.';
     };
-    $this->template = $theme . strstr($className, 'Notification', true);
+    $className =  strstr($className, 'Notification', true);
+    $className = Inflector::underscore($className);
+    $this->template = "$theme/email/html/$className";
     $this->subject = 'Notifica';
     $this->from = Configure::read('MailAdmin');
     $this->to = Configure::read('MailAdmin');
