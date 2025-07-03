@@ -5,7 +5,7 @@ This plugin is installed simply by creating a folder starting with a Capital Let
 
 ```bash
 cd plugins
-git clone https://github.com/impronta48/angelcake-notifications
+git clone https://github.com/5Tsrl/emma-backend-notifications.git
 mv angelcake-notifications Notifications
 ```
 
