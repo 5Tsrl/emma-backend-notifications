@@ -21,6 +21,7 @@ class baseNotification
   protected $mailer;
   protected $logo;
   protected $vars = [];
+  protected $plugin = null;
 
   public function __construct($logo = null)
   {
@@ -28,6 +29,7 @@ class baseNotification
     $theme = Configure::read('theme');
     if (!empty($theme)) {
       $theme .= '.';
+      $this->plugin = null;
     };
     $className =  strstr($className, 'Notification', true);
     $className = Inflector::underscore($className);
@@ -35,7 +37,7 @@ class baseNotification
     $this->subject = 'Notifica';
     $this->from = Configure::read('MailAdmin');
     $this->to = Configure::read('MailAdmin');
-    //$this->cc = Configure::read('MailAdmin');
+    // $this->cc = Configure::read('MailAdmin');
     $this->mailer = 'default';
     $this->logo = $logo;
   }
@@ -50,46 +52,104 @@ class baseNotification
   }
 
 
+  /**
+   * Protected helper to build header and footer attachments.
+   * Returns an array of attachments ready to pass to setAttachments().
+   * Also returns the footer CID if available.
+   *
+   * @return array ['attachments' => [...], 'footerLogoCid' => null|'footer-logo']
+   */
+  protected function buildEmailAttachments()
+  {
+    $attachments = [];
+    $footerLogoCid = null;
+
+    // Header logo
+    $headerFile = null;
+    if (!empty($this->logo)) {
+      $headerFile = WWW_ROOT . $this->logo;
+    } elseif (Configure::read('MailLogo')) {
+      $headerFile = WWW_ROOT . Configure::read('MailLogo');
+    }
+
+    if ($headerFile && file_exists($headerFile)) {
+      $attachments['logo.png'] = [
+        'file' => $headerFile,
+        'mimetype' => 'image/png',
+        'contentId' => '12345',
+      ];
+    }
+
+    // Footer logo (only when flag is on and file exists)
+    if (Configure::read('MailFooterInlineLogo')) {
+      $footerPath = Configure::read('VUE_APP_FOOTER');
+      if ($footerPath) {
+        $footerFile = WWW_ROOT . ltrim($footerPath, '/');
+        if (file_exists($footerFile)) {
+          $ext = pathinfo($footerFile, PATHINFO_EXTENSION);
+          $mimeType = mime_content_type($footerFile);
+          $attachments['footer-logo.' . $ext] = [
+            'file' => $footerFile,
+            'mimetype' => $mimeType,
+            'contentId' => 'footer-logo',
+          ];
+          $footerLogoCid = 'footer-logo';
+        }
+      }
+    }
+
+    return [
+      'attachments' => $attachments,
+      'footerLogoCid' => $footerLogoCid,
+    ];
+  }
+
   public function toMail($mailer  = null)
   {
     //Gestisco la configurazione email
-    if (!empty($mailer)){
+    if (!empty($mailer)) {
       $this->mailer = $mailer;
     }
 
     $mailer = new Mailer($this->mailer);
 
-    $mailer->setFrom($this->from)
-      ->setTo($this->to)
-      ->setEmailFormat('html')
-      ->setSubject($this->subject)
-      ->viewBuilder()
-      ->setTemplate($this->template)
-      ->setVars($this->vars);
-
-    if (!empty($this->cc)) {
-      $mailer->setCC($this->cc);
-    }
-    if (!empty($this->logo)) {
-      $file = WWW_ROOT . $this->logo;
-    } elseif (Configure::read('MailLogo')) {
-      $file = WWW_ROOT . Configure::read('MailLogo');
+    // Gli allegati (e quindi il cid del logo footer) vanno determinati PRIMA di setVars():
+    // setVars() copia l'array per valore, un `$this->vars[...]` aggiunto dopo non arriva al template.
+    $attachmentData = $this->buildEmailAttachments();
+    if ($attachmentData['footerLogoCid']) {
+      $this->vars['footerLogoCid'] = $attachmentData['footerLogoCid'];
     }
 
-    if (file_exists($file)) {
-        $mailer->setAttachments([
-          'logo.png' => [
-            'file' => $file,
-            'mimetype' => 'image/png',
-            'contentId' => '12345'
-          ]
-        ]);
-    }
+    if ($this->from) {
+      $mailer->setFrom($this->from)
+        ->setTo($this->to)
+        ->setEmailFormat('html')
+        ->setSubject($this->subject)
+        ->viewBuilder()
+        ->setTemplate($this->template)
+        ->setVars($this->vars);
 
-    $mailer->deliver();
+        if ($this->plugin !== null) {
+          $mailer->viewBuilder()->setPlugin($this->plugin);
+        }
+
+      if (!empty($this->cc)) {
+        $mailer->setCC($this->cc);
+      }
+
+      if (!empty($attachmentData['attachments'])) {
+        $mailer->setAttachments($attachmentData['attachments']);
+      }
+
+      $mailer->deliver();
+    }
   }
 
-  //devo scrivere la notifica a db
+  /**
+   * Write notification to database.
+   *
+   * @return void
+   */
   public function toDB()
   {
     $notifications = new NotificationsTable();

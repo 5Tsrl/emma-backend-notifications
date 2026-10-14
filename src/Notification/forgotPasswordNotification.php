@@ -17,7 +17,8 @@ class forgotPasswordNotification extends baseNotification
     $h = parse_url($referer, PHP_URL_HOST);
     $p = parse_url($referer, PHP_URL_PORT);
     $referer = "$s://$h:$p";
-    $this->vars =  ['user' => $toUser, 'token' => $token, 'referer' => $referer];
+    $platformName = Configure::read('VUE_APP_TITLE');
+    $this->vars =  ['user' => $toUser, 'token' => $token, 'referer' => $referer, 'platformName' => $platformName];
     $this->subject = 'Password Reset / Attivazione Account';
     $this->to = $toUser->email;
   }

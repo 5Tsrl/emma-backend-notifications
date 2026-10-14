@@ -41,28 +41,19 @@ class mustacheNotification extends baseNotification
     $rendered_message = $m->render($this->mustacheTemplate, $this->mustacheVars);
 
     // valida sempre to prima di costruire il messaggio, per via dei namespace (il "root" namespace
-    // non accessibile senza \ iniziale) l'errore interno non è intercettabile con catch e (log a parte) 
+    // non accessibile senza \ iniziale) l'errore interno non è intercettabile con catch e (log a parte)
     // non potrei memorizzare cosa è andato storto nell'invio della notifica
     if (empty($this->to) || !filter_var($this->to, FILTER_VALIDATE_EMAIL)) {
       throw new \Exception("L'email {$this->to} è vuota o non valida");
     }
 
-    if (!empty($this->logo)){
-      $file = WWW_ROOT . $this->logo;
-    } elseif (Configure::read('MailLogo')) {
-      $file = WWW_ROOT . Configure::read('MailLogo');
+    $attachmentData = $this->buildEmailAttachments();
+
+    $viewVars = ['content' => $rendered_message];
+    if ($attachmentData['footerLogoCid']) {
+      $viewVars['footerLogoCid'] = $attachmentData['footerLogoCid'];
     }
 
-    if (file_exists($file)) {
-        $mailer->setAttachments([
-          'logo.png' => [
-            'file' => $file,
-            'mimetype' => 'image/png',
-            'contentId' => '12345'
-          ]
-        ]);
-    }
-    
     $mailer->setFrom($this->from)
       ->setTo($this->to)
       ->setBcc($this->from)
@@ -70,8 +61,12 @@ class mustacheNotification extends baseNotification
       ->setSubject($this->subject)
       ->viewBuilder()
       ->setTemplate('default')
-      ->setVars(['content' => $rendered_message]);
-    
+      ->setVars($viewVars);
+
+    if (!empty($attachmentData['attachments'])) {
+      $mailer->setAttachments($attachmentData['attachments']);
+    }
+
     return $mailer->deliver();
   }
 
@@ -82,12 +77,12 @@ class mustacheNotification extends baseNotification
       $this->mailer = $mailer;
     }
     Log::write('debug', "definito il mailer $mailer");
-    
+
     $m = new \Mustache_Engine(['entity_flags' => ENT_QUOTES]);
     $rendered_message = $m->render($this->mustacheTemplate, $this->mustacheVars);
 
     $data = ['content' => $rendered_message, 'id' => $this->mustacheVars['id'] ];
-  
+
     $options = [
       'subject' => $this->subject,
       'layout' => 'default',
@@ -99,35 +94,26 @@ class mustacheNotification extends baseNotification
     ];
 
     Log::write('debug', "preparate le options");
-    
+
     if (is_array($this->from)){
-      $options['from_name'] = array_key_first($this->from); 
-      $options['from_email'] = array_pop($this->from); 
+      $options['from_name'] = array_key_first($this->from);
+      $options['from_email'] = array_pop($this->from);
     } else {
-      $options['from_email'] = $this->from; 
-      $options['from_name'] = $this->from; 
+      $options['from_email'] = $this->from;
+      $options['from_name'] = $this->from;
     }
 
     Log::write('debug', "from name: ". $options['from_name']);
     Log::write('debug', "from email: " .  $options['from_email']);
 
-    if (!empty($this->logo)) {
-      $file = WWW_ROOT . $this->logo;
-    } elseif (Configure::read('MailLogo')) {
-      $file = WWW_ROOT . Configure::read('MailLogo');
+    $attachmentData = $this->buildEmailAttachments();
+    if (!empty($attachmentData['attachments'])) {
+      $options['attachments'] = $attachmentData['attachments'];
+    }
+    if ($attachmentData['footerLogoCid']) {
+      $data['footerLogoCid'] = $attachmentData['footerLogoCid'];
     }
 
-    if (file_exists($file)) {
-        $logoAttachment = [
-          'logo.png' => [
-            'file' => $file,
-            'mimetype' => 'image/png',
-            'contentId' => '12345'
-          ]
-        ];
-      $options['attachments'] = $logoAttachment;
-    }
-    
     Log::write('debug', "inserito il logo");
     try {
       EmailQueue::enqueue($this->to, $data, $options);
